@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>PDPA Data Masking Tool</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <h1 id="page-title">PDPA Data Masking</h1>
+
+    <form id="mask-form" action="/mask" method="POST">
+        <label for="data" class="section-label">Input Mask:</label>
+
+        <textarea name="data" id="data" placeholder="" required>{{ original }}</textarea>
+        <br><br>
+
+        <button type="submit" id="submit-btn">Mask Data</button>
+    </form>
+
+    {% if mask_text %}
+        <div id="result-section">
+            <h2 id="result-title">Mask Data:</h2>
+            <textarea id="mask_text" readonly>{{ mask_text }}</textarea>
+        </div>
+    {% endif %}
+
+</body>
+</html>
