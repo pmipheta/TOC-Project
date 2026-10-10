@@ -104,3 +104,28 @@ hr {
     border-top: 1px solid #e0e0e0;
     margin: 30px 0;
 }
+
+#regex-guide {
+    margin-top: 24px;
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    background: #fff;
+    overflow-wrap: anywhere;
+}
+
+#regex-guide summary {
+    cursor: pointer;
+    color: #1a5276;
+    font-weight: bold;
+}
+
+#regex-guide summary:focus-visible {
+    outline: 2px solid #1a5276;
+    outline-offset: 3px;
+}
+
+#regex-guide code {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}

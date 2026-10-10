@@ -30,5 +30,42 @@
         </div>
     {% endif %}
 
+    <details id="regex-guide">
+        <summary>Regex ทำงานอย่างไร</summary>
+        <p>ใช้ Python re เพื่อปิดข้อมูลตามรูปแบบที่กำหนด ไม่ครอบคลุมข้อมูลส่วนบุคคลทุกชนิด</p>
+
+        <h3>บัตรเครดิต</h3>
+        <p>จับเลข 16 หลักแบบมีขีดหรือไม่มีขีด โดย group 1 เก็บเลข 4 ตัวท้าย</p>
+        <p>Pattern: <code>\b\d{4}-\d{4}-\d{4}-(\d{4})\b</code></p>
+        <p>Pattern: <code>\b\d{4}\d{4}\d{4}(\d{4})\b</code></p>
+        <p>Replacement: <code>XXXX-XXXX-XXXX-\1</code></p>
+        <p>ตัวอย่าง: <code>1234-5678-9012-3456 → XXXX-XXXX-XXXX-3456</code></p>
+
+        <h3>อีเมล</h3>
+        <p>Pattern: <code>\b([a-zA-Z0-9._%+-])([a-zA-Z0-9._%+-]+)([a-zA-Z0-9._%+-])@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b</code></p>
+        <p>Callback: <code>mask_email</code> เก็บตัวแรกและตัวสุดท้ายของชื่อ (groups 1 และ 3) กับโดเมน (group 4) แล้วแทนตัวกลางด้วย * ตามจำนวนอักขระใน group 2</p>
+        <p>ชื่อยาวหนึ่งหรือสองตัวไม่มีตัวกลางให้ปิด จึงคงเดิม</p>
+        <p>ตัวอย่าง: <code>somchai.d@company.com → s*******d@company.com</code></p>
+
+        <h3>โทรศัพท์</h3>
+        <p>จับเลข 10 หลักแบบมีขีดหรือไม่มีขีด โดย group 1 เก็บเลข 4 ตัวท้าย</p>
+        <p>Pattern: <code>\b\d{3}-\d{3}-(\d{4})\b</code></p>
+        <p>Pattern: <code>\b\d{3}\d{3}(\d{4})\b</code></p>
+        <p>Replacement: <code>XXX-XXX-\1</code></p>
+        <p>ตัวอย่าง: <code>093-245-7894 → XXX-XXX-7894</code></p>
+
+        <h3>วันเกิด</h3>
+        <p>Pattern: <code>(DOB:[ \t]*)\d{2}/\d{2}/(\d{2})\d{2}(?!\d)</code></p>
+        <p>Replacement: <code>\g&lt;1&gt;XX/XX/\g&lt;2&gt;XX</code></p>
+        <p>Group 1 เก็บ DOB: และช่องว่างหรือแท็บ; group 2 เก็บสองหลักแรกของปี ส่วน (?!\d) ป้องกันการจับส่วนต้นของปีที่ยาวเกิน 4 หลัก ไม่ข้ามบรรทัด ไม่ตรวจวันจริงในปฏิทิน และไม่แปลงปี พ.ศ./ค.ศ.</p>
+        <p>ตัวอย่าง: <code>DOB:25/12/2549 → DOB:XX/XX/25XX</code></p>
+
+        <h3>ที่อยู่</h3>
+        <p>Pattern: <code>(Address:[ \t]*)\d+(?:/\d+)*(?=\s|$)</code></p>
+        <p>Replacement: <code>\g&lt;1&gt;XXX</code></p>
+        <p>Group 1 เก็บ Address: และช่องว่างหรือแท็บ ปิดเฉพาะเลขที่บ้านแบบตัวเลขหรือเลขคั่น / ทั้ง token โดยตรวจว่าตามด้วยช่องว่างหรือจบข้อความ ไม่ข้ามบรรทัดไปหาเลขที่บ้าน และคงเลขซอยกับชื่อถนน</p>
+        <p>ตัวอย่าง: <code>Address: 689 ซอยลาดกระบัง 19 ถนนลาดกระบัง → Address: XXX ซอยลาดกระบัง 19 ถนนลาดกระบัง</code></p>
+    </details>
+
 </body>
 </html>

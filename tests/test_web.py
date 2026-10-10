@@ -10,6 +10,9 @@ class PageParser(HTMLParser):
         self.links = []
         self.elements = {}
         self.scripts = []
+        self.code = []
+        self.summary = []
+        self.current_text_tag = None
         self.textareas = {}
         self.current_link = None
         self.current_textarea = None
@@ -20,6 +23,9 @@ class PageParser(HTMLParser):
             self.elements[attrs['id']] = {'tag': tag, 'attrs': attrs}
         if tag == 'script':
             self.scripts.append(attrs)
+        if tag in ('code', 'summary'):
+            getattr(self, tag).append('')
+            self.current_text_tag = tag
         if tag == 'a':
             self.links.append({'href': attrs.get('href'), 'text': ''})
             self.current_link = self.links[-1]
@@ -28,12 +34,16 @@ class PageParser(HTMLParser):
             self.textareas[self.current_textarea] = ''
 
     def handle_data(self, data):
+        if self.current_text_tag:
+            getattr(self, self.current_text_tag)[-1] += data
         if self.current_link is not None:
             self.current_link['text'] += data
         if self.current_textarea is not None:
             self.textareas[self.current_textarea] += data
 
     def handle_endtag(self, tag):
+        if tag == self.current_text_tag:
+            self.current_text_tag = None
         if tag == 'a':
             self.current_link = None
         elif tag == 'textarea':
@@ -41,6 +51,43 @@ class PageParser(HTMLParser):
 
 
 class WebTests(unittest.TestCase):
+    def test_regex_guide(self):
+        patterns = (
+            r'\b\d{4}-\d{4}-\d{4}-(\d{4})\b',
+            r'\b\d{4}\d{4}\d{4}(\d{4})\b',
+            r'XXXX-XXXX-XXXX-\1',
+            r'\b\d{3}-\d{3}-(\d{4})\b',
+            r'\b\d{3}\d{3}(\d{4})\b',
+            r'XXX-XXX-\1',
+            r'\b([a-zA-Z0-9._%+-])([a-zA-Z0-9._%+-]+)([a-zA-Z0-9._%+-])@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b',
+            r'(DOB:[ \t]*)\d{2}/\d{2}/(\d{2})\d{2}(?!\d)',
+            r'\g<1>XX/XX/\g<2>XX',
+            r'(Address:[ \t]*)\d+(?:/\d+)*(?=\s|$)',
+            r'\g<1>XXX',
+            'mask_email',
+        )
+        with app.test_client() as client:
+            responses = (client.get('/'), client.post('/mask', data={'data': 'abc'}))
+        for response in responses:
+            with self.subTest(response=response):
+                self.assertEqual(response.status_code, 200)
+                page = PageParser()
+                html = response.get_data(as_text=True)
+                page.feed(html)
+                self.assertIn('regex-guide', page.elements)
+                guide = page.elements['regex-guide']
+                self.assertEqual(guide['tag'], 'details')
+                self.assertNotIn('open', guide['attrs'])
+                self.assertIn('Regex ทำงานอย่างไร', page.summary)
+                for pattern in patterns:
+                    self.assertIn(pattern, page.code)
+                for text in ('บัตรเครดิต', 'อีเมล', 'โทรศัพท์', 'วันเกิด', 'ที่อยู่',
+                             'เก็บตัวแรกและตัวสุดท้าย', 'โดเมน',
+                             'แทนตัวกลางด้วย * ตามจำนวน', 'ไม่ตรวจวันจริง',
+                             'ไม่แปลงปี', 'ตัวเลขหรือเลขคั่น /',
+                             'ไม่ครอบคลุมข้อมูลส่วนบุคคลทุกชนิด'):
+                    self.assertIn(text, html)
+
     def test_example_controls(self):
         with app.test_client() as client:
             responses = (client.get('/'), client.post('/mask', data={'data': 'abc'}))
