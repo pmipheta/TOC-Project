@@ -8,70 +8,97 @@
     <script src="{{ url_for('static', filename='app.js') }}" defer></script>
 </head>
 <body>
-
+    <header class="site-header">
     <h1 id="page-title">PDPA Data Masking</h1>
-    <p><a href="https://github.com/pmipheta/TOC-Project">Source code on GitHub</a></p>
+    <div id="language-control" hidden>
+        <label for="language-select" data-en="Language">ภาษา</label>
+        <select id="language-select">
+            <option value="th">ไทย</option>
+            <option value="en">English</option>
+        </select>
+    </div>
+
+    </header>
+    <main>
+    <p class="source-link"><a class="github-link" href="https://github.com/pmipheta/TOC-Project">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M12 .75a11.25 11.25 0 0 0-3.56 21.92c.56.1.77-.24.77-.54v-2.1c-3.14.68-3.8-1.33-3.8-1.33-.51-1.3-1.25-1.65-1.25-1.65-1.02-.7.08-.69.08-.69 1.13.08 1.73 1.16 1.73 1.16 1 1.72 2.63 1.22 3.27.93.1-.73.39-1.22.71-1.5-2.5-.28-5.13-1.25-5.13-5.56 0-1.23.44-2.23 1.16-3.02-.12-.28-.5-1.43.11-2.98 0 0 .95-.3 3.1 1.15a10.8 10.8 0 0 1 5.64 0c2.15-1.46 3.1-1.15 3.1-1.15.61 1.55.23 2.7.11 2.98.72.79 1.16 1.79 1.16 3.02 0 4.32-2.63 5.28-5.14 5.56.4.35.76 1.03.76 2.08v3.1c0 .3.2.65.78.54A11.25 11.25 0 0 0 12 .75Z"/></svg>
+        <span data-en="Source code on GitHub">Source code on GitHub</span>
+    </a></p>
 
     <form id="mask-form" action="/mask" method="POST">
-        <label for="data" class="section-label">Input Mask:</label>
+        <label for="data" class="section-label" data-en="Input text:">ข้อความที่ต้องการปิดข้อมูล:</label>
 
-        <textarea name="data" id="data" placeholder="" required>{{ original }}</textarea>
-        <br><br>
-
-        <button type="submit" id="submit-btn">Mask Data</button>
-        <button type="button" id="load-example-btn" hidden>โหลดตัวอย่าง</button>
+        <div class="input-editor">
+            <pre id="input-mirror" aria-hidden="true" hidden></pre>
+            <textarea name="data" id="data" placeholder="วางข้อความที่นี่ หรือกดโหลดตัวอย่าง" aria-describedby="highlight-notice highlight-status" required>
+{{ original }}</textarea>
+        </div>
+        <p id="highlight-notice" class="highlight-help" data-en="Highlights show matches to masking rules, not all personal data. Text is sent to the server for regex checks as you type." hidden>สีเน้นแสดงช่วงที่ตรงกฎเซ็นเซอร์ ไม่ครอบคลุมข้อมูลส่วนบุคคลทั้งหมด ข้อความจะถูกส่งไปตรวจ Regex ขณะพิมพ์</p>
+        <p id="highlight-status" role="status" aria-live="polite"></p>
+        <div class="form-actions">
+        <button type="submit" id="submit-btn" data-en="Mask Data">Mask Data</button>
+        <button type="button" id="load-example-btn" data-examples-url="{{ url_for('static', filename='examples.json') }}" data-en="Load example" hidden>โหลดตัวอย่าง</button>
+        <button type="button" id="clear-input-btn" data-en="Clear input" hidden>ล้างข้อความ</button>
+        </div>
     </form>
     <p id="action-status" role="status" aria-live="polite"></p>
+    <script id="highlight-data" type="application/json">{{ highlights|default({'input_spans': [], 'output_spans': []})|tojson }}</script>
 
     {% if mask_text %}
         <div id="result-section">
-            <h2 id="result-title">Mask Data:</h2>
-            <p>ผลลัพธ์จากการประมวลผลครั้งล่าสุด</p>
-            <textarea id="mask_text" readonly hidden>{{ mask_text }}</textarea>
-            <button type="button" id="result-view-toggle" aria-pressed="false"
-                    aria-controls="result-text result-categories" hidden>แสดงแบบรายการ</button>
-            <pre id="result-text">{{ mask_text }}</pre>
+            <h2 id="result-title" data-en="Masked result">ผลลัพธ์ที่ปิดข้อมูลแล้ว</h2>
+            <p data-en="Result from the last submission">ผลลัพธ์จากการประมวลผลครั้งล่าสุด</p>
+            <textarea id="mask_text" readonly hidden>
+{{ mask_text }}</textarea>
+            <div id="result-view-menu" role="group" aria-label="รูปแบบผลลัพธ์" hidden>
+                <button type="button" id="result-view-text" aria-pressed="true"
+                        aria-controls="result-text result-categories" data-en="Full text">ข้อความเต็ม</button>
+                <button type="button" id="result-view-toggle" aria-pressed="false"
+                        aria-controls="result-text result-categories" data-en="By category">รายการแยกประเภท</button>
+            </div>
+            <pre id="result-text">
+{{ mask_text }}</pre>
             <div id="result-categories" hidden></div>
-            <button type="button" id="copy-result-btn" hidden>คัดลอกผลลัพธ์</button>
+            <button type="button" id="copy-result-btn" data-en="Copy result" hidden>คัดลอกผลลัพธ์</button>
         </div>
     {% endif %}
 
     <details id="regex-guide">
-        <summary>Regex ทำงานอย่างไร</summary>
-        <p>ใช้ Python re เพื่อปิดข้อมูลตามรูปแบบที่กำหนด ไม่ครอบคลุมข้อมูลส่วนบุคคลทุกชนิด</p>
+        <summary data-en="How the regex works">Regex ทำงานอย่างไร</summary>
+        <p data-en="Python re masks the supported formats. This does not cover every kind of personal data.">ใช้ Python re เพื่อปิดข้อมูลตามรูปแบบที่กำหนด ไม่ครอบคลุมข้อมูลส่วนบุคคลทุกชนิด</p>
 
-        <h3>บัตรเครดิต</h3>
-        <p>จับเลข 16 หลักแบบมีขีดหรือไม่มีขีด โดย group 1 เก็บเลข 4 ตัวท้าย</p>
+        <h3 data-en="Credit Card">บัตรเครดิต</h3>
+        <p data-en="Matches 16 digits with or without hyphens. Group 1 keeps the last four digits.">จับเลข 16 หลักแบบมีขีดหรือไม่มีขีด โดย group 1 เก็บเลข 4 ตัวท้าย</p>
         <p>Pattern: <code>\b\d{4}-\d{4}-\d{4}-(\d{4})\b</code></p>
         <p>Pattern: <code>\b\d{4}\d{4}\d{4}(\d{4})\b</code></p>
         <p>Replacement: <code>XXXX-XXXX-XXXX-\1</code></p>
-        <p>ตัวอย่าง: <code>1234-5678-9012-3456 → XXXX-XXXX-XXXX-3456</code></p>
+        <p><span data-en="Example:">ตัวอย่าง:</span> <code>1234-5678-9012-3456 → XXXX-XXXX-XXXX-3456</code></p>
 
-        <h3>อีเมล</h3>
+        <h3 data-en="Email">อีเมล</h3>
         <p>Pattern: <code>\b([a-zA-Z0-9._%+-])([a-zA-Z0-9._%+-]+)([a-zA-Z0-9._%+-])@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b</code></p>
-        <p>Callback: <code>mask_email</code> เก็บตัวแรกและตัวสุดท้ายของชื่อ (groups 1 และ 3) กับโดเมน (group 4) แล้วแทนตัวกลางด้วย * ตามจำนวนอักขระใน group 2</p>
-        <p>ชื่อยาวหนึ่งหรือสองตัวไม่มีตัวกลางให้ปิด จึงคงเดิม</p>
-        <p>ตัวอย่าง: <code>somchai.d@company.com → s*******d@company.com</code></p>
+        <p>Callback: <code>mask_email</code> <span data-en="Keeps the first and last username characters (groups 1 and 3) and the domain (group 4). Replaces the middle characters with the same number of asterisks (group 2).">เก็บตัวแรกและตัวสุดท้ายของชื่อ (groups 1 และ 3) กับโดเมน (group 4) แล้วแทนตัวกลางด้วย * ตามจำนวนอักขระใน group 2</span></p>
+        <p data-en="One- or two-character usernames have no middle characters to mask and remain unchanged.">ชื่อยาวหนึ่งหรือสองตัวไม่มีตัวกลางให้ปิด จึงคงเดิม</p>
+        <p><span data-en="Example:">ตัวอย่าง:</span> <code>somchai.d@company.com → s*******d@company.com</code></p>
 
-        <h3>โทรศัพท์</h3>
-        <p>จับเลข 10 หลักแบบมีขีดหรือไม่มีขีด โดย group 1 เก็บเลข 4 ตัวท้าย</p>
+        <h3 data-en="Phone Number">โทรศัพท์</h3>
+        <p data-en="Matches 10 digits with or without hyphens. Group 1 keeps the last four digits.">จับเลข 10 หลักแบบมีขีดหรือไม่มีขีด โดย group 1 เก็บเลข 4 ตัวท้าย</p>
         <p>Pattern: <code>\b\d{3}-\d{3}-(\d{4})\b</code></p>
         <p>Pattern: <code>\b\d{3}\d{3}(\d{4})\b</code></p>
         <p>Replacement: <code>XXX-XXX-\1</code></p>
-        <p>ตัวอย่าง: <code>093-245-7894 → XXX-XXX-7894</code></p>
+        <p><span data-en="Example:">ตัวอย่าง:</span> <code>093-245-7894 → XXX-XXX-7894</code></p>
 
-        <h3>วันเกิด</h3>
+        <h3 data-en="Date of Birth">วันเกิด</h3>
         <p>Pattern: <code>(DOB:[ \t]*)\d{2}/\d{2}/(\d{2})\d{2}(?!\d)</code></p>
         <p>Replacement: <code>\g&lt;1&gt;XX/XX/\g&lt;2&gt;XX</code></p>
-        <p>Group 1 เก็บ DOB: และช่องว่างหรือแท็บ; group 2 เก็บสองหลักแรกของปี ส่วน (?!\d) ป้องกันการจับส่วนต้นของปีที่ยาวเกิน 4 หลัก ไม่ข้ามบรรทัด ไม่ตรวจวันจริงในปฏิทิน และไม่แปลงปี พ.ศ./ค.ศ.</p>
-        <p>ตัวอย่าง: <code>DOB:25/12/2549 → DOB:XX/XX/25XX</code></p>
+        <p data-en="Group 1 keeps DOB: and spaces or tabs; group 2 keeps the first two year digits. (?!\d) rejects years longer than four digits. It does not cross lines, validate calendar dates, or convert Buddhist/Gregorian years.">Group 1 เก็บ DOB: และช่องว่างหรือแท็บ; group 2 เก็บสองหลักแรกของปี ส่วน (?!\d) ป้องกันการจับส่วนต้นของปีที่ยาวเกิน 4 หลัก ไม่ข้ามบรรทัด ไม่ตรวจวันจริงในปฏิทิน และไม่แปลงปี พ.ศ./ค.ศ.</p>
+        <p><span data-en="Example:">ตัวอย่าง:</span> <code>DOB:25/12/2549 → DOB:XX/XX/25XX</code></p>
 
-        <h3>ที่อยู่</h3>
+        <h3 data-en="Address">ที่อยู่</h3>
         <p>Pattern: <code>(Address:[ \t]*)\d+(?:/\d+)*(?=\s|$)</code></p>
         <p>Replacement: <code>\g&lt;1&gt;XXX</code></p>
-        <p>Group 1 เก็บ Address: และช่องว่างหรือแท็บ ปิดเฉพาะเลขที่บ้านแบบตัวเลขหรือเลขคั่น / ทั้ง token โดยตรวจว่าตามด้วยช่องว่างหรือจบข้อความ ไม่ข้ามบรรทัดไปหาเลขที่บ้าน และคงเลขซอยกับชื่อถนน</p>
-        <p>ตัวอย่าง: <code>Address: 689 ซอยลาดกระบัง 19 ถนนลาดกระบัง → Address: XXX ซอยลาดกระบัง 19 ถนนลาดกระบัง</code></p>
+        <p data-en="Group 1 keeps Address: and spaces or tabs. Masks the entire numeric or slash-separated house number, followed by whitespace or the end of the text. Does not cross lines; keeps lane numbers and street names.">Group 1 เก็บ Address: และช่องว่างหรือแท็บ ปิดเฉพาะเลขที่บ้านแบบตัวเลขหรือเลขคั่น / ทั้ง token โดยตรวจว่าตามด้วยช่องว่างหรือจบข้อความ ไม่ข้ามบรรทัดไปหาเลขที่บ้าน และคงเลขซอยกับชื่อถนน</p>
+        <p><span data-en="Example:">ตัวอย่าง:</span> <code>Address: 689 ซอยลาดกระบัง 19 ถนนลาดกระบัง → Address: XXX ซอยลาดกระบัง 19 ถนนลาดกระบัง</code></p>
     </details>
-
+    </main>
 </body>
 </html>

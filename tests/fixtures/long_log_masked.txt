@@ -1,0 +1,18 @@
+[2026-10-10 09:00:00] INFO Demo session started; all customer data is fictional.
+[2026-10-10 09:00:01] DEBUG Request queued for sandbox processing.
+[2026-10-10 09:00:02] INFO Payment card XXXX-XXXX-XXXX-3456 accepted in demo mode.
+[2026-10-10 09:00:03] INFO Receipt sent to s*******d@company.com using phone XXX-XXX-7894.
+[2026-10-10 09:00:04] DEBUG Customer record DOB:XX/XX/25XX verified by format only.
+[2026-10-10 09:00:05] INFO Delivery Address: XXX ซอยลาดกระบัง 19 ถนนลาดกระบัง
+[2026-10-10 09:00:06] WARN Retry card XXXX-XXXX-XXXX-3456 and phone XXX-XXX-7894 later.
+[2026-10-10 09:00:07] INFO Alternate contact a***e@example.com phone XXX-XXX-5678.
+[2026-10-10 09:00:08] DEBUG Profile DOB: XX/XX/20XX updated in sandbox.
+[2026-10-10 09:00:09] INFO Destination Address: XXX ถนนลาดกระบัง
+[2026-10-10 09:00:10] INFO Duplicate receipt s*******d@company.com queued.
+[2026-10-10 09:00:11] WARN No customer found; retry remains pending.
+[2026-10-10 09:00:12] DEBUG Birth date DOB:	XX/XX/25XX recorded for demo.
+[2026-10-10 09:00:13] INFO Backup card XXXX-XXXX-XXXX-7654 and email d**o@example.org.
+[2026-10-10 09:00:14] INFO Plain date 25/12/2549 remains ordinary text.
+[2026-10-10 09:00:15] WARN Address: ถนนลาดกระบัง has no house number.
+[2026-10-10 09:00:16] DEBUG Short mailbox ab@example.com remains unchanged.
+[2026-10-10 09:00:17] INFO Demo session completed successfully.

@@ -44,14 +44,30 @@ class PageParser(HTMLParser):
 
     def handle_endtag(self, tag):
         if tag == self.current_text_tag:
+            if tag == 'pre':
+                self.pre[-1] = self.pre[-1].removeprefix('\n')
             self.current_text_tag = None
         if tag == 'a':
             self.current_link = None
         elif tag == 'textarea':
+            self.textareas[self.current_textarea] = self.textareas[self.current_textarea].removeprefix('\n')
             self.current_textarea = None
 
 
 class WebTests(unittest.TestCase):
+    def test_language_menu(self):
+        with app.test_client() as client:
+            for response in (client.get('/'), client.post('/mask', data={'data': 'abc'})):
+                page = PageParser()
+                html = response.get_data(as_text=True)
+                page.feed(html)
+                self.assertIn('language-select', page.elements)
+                self.assertEqual(page.elements['language-select']['tag'], 'select')
+                self.assertIn('hidden', page.elements['language-control']['attrs'])
+                self.assertIn('value="th"', html)
+                self.assertIn('value="en"', html)
+                self.assertIn('data-en="How the regex works"', html)
+
     def test_result_views(self):
         with app.test_client() as client:
             for response in (client.get('/'), client.post('/mask', data={'data': ''})):
@@ -68,10 +84,13 @@ class WebTests(unittest.TestCase):
         self.assertEqual(attrs['type'], 'button')
         self.assertEqual(attrs['aria-pressed'], 'false')
         self.assertEqual(attrs['aria-controls'], 'result-text result-categories')
-        self.assertIn('hidden', attrs)
+        self.assertIn('hidden', page.elements['result-view-menu']['attrs'])
+        self.assertEqual(page.elements['result-view-menu']['attrs']['role'], 'group')
+        self.assertEqual(page.elements['result-view-text']['attrs']['aria-pressed'], 'true')
+        self.assertEqual(page.elements['result-view-text']['attrs']['type'], 'button')
         self.assertIn('hidden', page.elements['result-categories']['attrs'])
         self.assertIn('hidden', page.elements['mask_text']['attrs'])
-        self.assertEqual(page.pre, [text.replace('25/12/2549', 'XX/XX/25XX')])
+        self.assertEqual(page.pre, ['', text.replace('25/12/2549', 'XX/XX/25XX')])
         self.assertNotIn('<script>', html)
 
     def test_copy_control(self):
@@ -217,5 +236,6 @@ class WebTests(unittest.TestCase):
                 self.assertIn(
                     {'href': 'https://github.com/pmipheta/TOC-Project',
                      'text': 'Source code on GitHub'},
-                    page.links,
+                    [{'href': link['href'], 'text': link['text'].strip()}
+                     for link in page.links],
                 )
