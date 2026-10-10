@@ -23,7 +23,7 @@ def mask_data(t):
 
     t = re.sub(pattern_email, mask_email, t)
     #date
-    t = re.sub(r'DOB:\d{2}/\d{2}/(\d{2})\d{2}',r'XX/XX/\1XX',t)
+    t = re.sub(r'(DOB:[ \t]*)\d{2}/\d{2}/(\d{2})\d{2}(?!\d)',r'\g<1>XX/XX/\g<2>XX',t)
     #address
     t = re.sub(r'(Address:\s*)[^\s]+', r'\1XXX', t)
 
