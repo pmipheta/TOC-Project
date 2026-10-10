@@ -52,7 +52,8 @@ body {
 
 #submit-btn,
 #load-example-btn,
-#copy-result-btn {
+#copy-result-btn,
+#result-view-toggle {
     margin-top: 14px;
     background-color: #1a5276;
     color: #fff;
@@ -66,13 +67,15 @@ body {
 
 #submit-btn:hover,
 #load-example-btn:hover,
-#copy-result-btn:hover {
+#copy-result-btn:hover,
+#result-view-toggle:hover {
     background-color: #154360;
 }
 
 #submit-btn:focus-visible,
 #load-example-btn:focus-visible,
-#copy-result-btn:focus-visible {
+#copy-result-btn:focus-visible,
+#result-view-toggle:focus-visible {
     outline: 2px solid #1a5276;
     outline-offset: 3px;
 }
@@ -131,4 +134,36 @@ hr {
 #regex-guide code {
     white-space: pre-wrap;
     overflow-wrap: anywhere;
+}
+
+#result-text {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font: 1rem/1.6 "Consolas", monospace;
+}
+
+#result-categories {
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    margin-top: 16px;
+    overflow-wrap: anywhere;
+}
+
+#result-categories section {
+    padding: 16px;
+    text-align: center;
+}
+
+#result-categories section + section {
+    border-top: 1px solid #e0e0e0;
+}
+
+#result-categories h3 {
+    color: #536675;
+    font-size: 1rem;
+}
+
+#result-categories p {
+    white-space: pre-wrap;
+    line-height: 1.6;
 }

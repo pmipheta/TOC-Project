@@ -2,6 +2,7 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>PDPA Data Masking Tool</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="{{ url_for('static', filename='app.js') }}" defer></script>
@@ -26,7 +27,11 @@
         <div id="result-section">
             <h2 id="result-title">Mask Data:</h2>
             <p>ผลลัพธ์จากการประมวลผลครั้งล่าสุด</p>
-            <textarea id="mask_text" readonly>{{ mask_text }}</textarea>
+            <textarea id="mask_text" readonly hidden>{{ mask_text }}</textarea>
+            <button type="button" id="result-view-toggle" aria-pressed="false"
+                    aria-controls="result-text result-categories" hidden>แสดงแบบรายการ</button>
+            <pre id="result-text">{{ mask_text }}</pre>
+            <div id="result-categories" hidden></div>
             <button type="button" id="copy-result-btn" hidden>คัดลอกผลลัพธ์</button>
         </div>
     {% endif %}

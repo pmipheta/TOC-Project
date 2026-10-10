@@ -12,6 +12,7 @@ class PageParser(HTMLParser):
         self.scripts = []
         self.code = []
         self.summary = []
+        self.pre = []
         self.current_text_tag = None
         self.textareas = {}
         self.current_link = None
@@ -23,7 +24,7 @@ class PageParser(HTMLParser):
             self.elements[attrs['id']] = {'tag': tag, 'attrs': attrs}
         if tag == 'script':
             self.scripts.append(attrs)
-        if tag in ('code', 'summary'):
+        if tag in ('code', 'summary', 'pre'):
             getattr(self, tag).append('')
             self.current_text_tag = tag
         if tag == 'a':
@@ -51,6 +52,28 @@ class PageParser(HTMLParser):
 
 
 class WebTests(unittest.TestCase):
+    def test_result_views(self):
+        with app.test_client() as client:
+            for response in (client.get('/'), client.post('/mask', data={'data': ''})):
+                page = PageParser()
+                page.feed(response.get_data(as_text=True))
+                self.assertNotIn('result-view-toggle', page.elements)
+            text = '\nDOB:25/12/2549\n<script>alert(1)</script>\n'
+            response = client.post('/mask', data={'data': text})
+        page = PageParser()
+        html = response.get_data(as_text=True)
+        page.feed(html)
+        self.assertIn('result-view-toggle', page.elements)
+        attrs = page.elements['result-view-toggle']['attrs']
+        self.assertEqual(attrs['type'], 'button')
+        self.assertEqual(attrs['aria-pressed'], 'false')
+        self.assertEqual(attrs['aria-controls'], 'result-text result-categories')
+        self.assertIn('hidden', attrs)
+        self.assertIn('hidden', page.elements['result-categories']['attrs'])
+        self.assertIn('hidden', page.elements['mask_text']['attrs'])
+        self.assertEqual(page.pre, [text.replace('25/12/2549', 'XX/XX/25XX')])
+        self.assertNotIn('<script>', html)
+
     def test_copy_control(self):
         with app.test_client() as client:
             for response in (client.get('/'), client.post('/mask', data={'data': ''})):
