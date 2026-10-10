@@ -4,6 +4,23 @@ from app import mask_data
 
 
 class MaskDataTests(unittest.TestCase):
+    def test_address(self):
+        cases = (
+            (
+                'Address: 689 ซอยลาดกระบัง 19 ถนนลาดกระบัง แขวงลาดกระบัง เขตลาดกระบัง กรุงเทพฯ',
+                'Address: XXX ซอยลาดกระบัง 19 ถนนลาดกระบัง แขวงลาดกระบัง เขตลาดกระบัง กรุงเทพฯ',
+            ),
+            ('Address: 689/12 ถนนลาดกระบัง', 'Address: XXX ถนนลาดกระบัง'),
+            ('Address: ถนนลาดกระบัง', 'Address: ถนนลาดกระบัง'),
+            ('Address:\nDOB:25/12/2549', 'Address:\nDOB:XX/XX/25XX'),
+            ('Address: 689abc ถนนลาดกระบัง', 'Address: 689abc ถนนลาดกระบัง'),
+            ('Address: 689/12abc ถนนลาดกระบัง', 'Address: 689/12abc ถนนลาดกระบัง'),
+            ('Address:\t689', 'Address:\tXXX'),
+        )
+        for text, expected in cases:
+            with self.subTest(text=text):
+                self.assertEqual(mask_data(text), expected)
+
     def test_dob(self):
         cases = (
             ('DOB:25/12/2549', 'DOB:XX/XX/25XX'),

@@ -25,7 +25,7 @@ def mask_data(t):
     #date
     t = re.sub(r'(DOB:[ \t]*)\d{2}/\d{2}/(\d{2})\d{2}(?!\d)',r'\g<1>XX/XX/\g<2>XX',t)
     #address
-    t = re.sub(r'(Address:\s*)[^\s]+', r'\1XXX', t)
+    t = re.sub(r'(Address:[ \t]*)\d+(?:/\d+)*(?=\s|$)', r'\g<1>XXX', t)
 
     return t
 
