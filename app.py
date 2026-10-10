@@ -7,8 +7,8 @@ def mask_data(t):
     t  = re.sub(r'\b\d{4}-\d{4}-\d{4}-(\d{4})\b',r'XXXX-XXXX-XXXX-\1',t)
     t  = re.sub(r'\b\d{4}\d{4}\d{4}(\d{4})\b',r'XXXX-XXXX-XXXX-\1',t)
     #credit-card
-    t = re.sub(r'\b\d{3}-\d{3}-(\d{4})\b',r'XXXX-XXX-\1',t)
-    t = re.sub(r'\b\d{3}\d{3}(\d{4})\b',r'XXXX-XXX-\1',t)
+    t = re.sub(r'\b\d{3}-\d{3}-(\d{4})\b',r'XXX-XXX-\1',t)
+    t = re.sub(r'\b\d{3}\d{3}(\d{4})\b',r'XXX-XXX-\1',t)
     #gmail
     def mask_email(match):
         first_char = match.group(1)  
