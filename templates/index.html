@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>PDPA Data Masking Tool</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='app.js') }}" defer></script>
 </head>
 <body>
 
@@ -17,11 +18,14 @@
         <br><br>
 
         <button type="submit" id="submit-btn">Mask Data</button>
+        <button type="button" id="load-example-btn" hidden>โหลดตัวอย่าง</button>
     </form>
+    <p id="action-status" role="status" aria-live="polite"></p>
 
     {% if mask_text %}
         <div id="result-section">
             <h2 id="result-title">Mask Data:</h2>
+            <p>ผลลัพธ์จากการประมวลผลครั้งล่าสุด</p>
             <textarea id="mask_text" readonly>{{ mask_text }}</textarea>
         </div>
     {% endif %}

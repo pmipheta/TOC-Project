@@ -50,7 +50,8 @@ body {
     box-shadow: 0 0 0 2px rgba(26, 82, 118, 0.15);
 }
 
-#submit-btn {
+#submit-btn,
+#load-example-btn {
     margin-top: 14px;
     background-color: #1a5276;
     color: #fff;
@@ -62,8 +63,15 @@ body {
     transition: background-color 0.2s ease;
 }
 
-#submit-btn:hover {
+#submit-btn:hover,
+#load-example-btn:hover {
     background-color: #154360;
+}
+
+#submit-btn:focus-visible,
+#load-example-btn:focus-visible {
+    outline: 2px solid #1a5276;
+    outline-offset: 3px;
 }
 
 #result-section {
