@@ -27,3 +27,20 @@ exampleButton.addEventListener('click', () => {
     input.focus();
 });
 exampleButton.hidden = false;
+
+const copyButton = document.getElementById('copy-result-btn');
+if (copyButton) {
+    copyButton.addEventListener('click', async () => {
+        const text = result.value;
+        if (!text) return;
+        try {
+            await navigator.clipboard.writeText(text);
+            if (result.value === text) status.textContent = 'คัดลอกผลลัพธ์แล้ว';
+        } catch {
+            if (result.value === text) {
+                status.textContent = 'คัดลอกอัตโนมัติไม่ได้ โปรดเลือกข้อความผลลัพธ์และคัดลอกเอง';
+            }
+        }
+    });
+    copyButton.hidden = false;
+}

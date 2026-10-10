@@ -51,7 +51,8 @@ body {
 }
 
 #submit-btn,
-#load-example-btn {
+#load-example-btn,
+#copy-result-btn {
     margin-top: 14px;
     background-color: #1a5276;
     color: #fff;
@@ -64,12 +65,14 @@ body {
 }
 
 #submit-btn:hover,
-#load-example-btn:hover {
+#load-example-btn:hover,
+#copy-result-btn:hover {
     background-color: #154360;
 }
 
 #submit-btn:focus-visible,
-#load-example-btn:focus-visible {
+#load-example-btn:focus-visible,
+#copy-result-btn:focus-visible {
     outline: 2px solid #1a5276;
     outline-offset: 3px;
 }

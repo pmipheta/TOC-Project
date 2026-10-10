@@ -9,10 +9,10 @@ const example = [
     'DOB:25/12/2549', 'Address: 689 ซอยลาดกระบัง 19 ถนนลาดกระบัง',
 ].join('\n');
 
-function page({ value = '', result = false, approve = true } = {}) {
+function page({ value = '', result = false, approve = true, clipboard } = {}) {
     const elements = {};
     for (const id of ['data', 'load-example-btn', 'action-status',
-        ...(result ? ['mask_text', 'result-section'] : [])]) {
+        ...(result ? ['mask_text', 'result-section', 'copy-result-btn'] : [])]) {
         elements[id] = {
             value: '', textContent: '', hidden: id === 'load-example-btn',
             handlers: {}, focused: false,
@@ -28,6 +28,7 @@ function page({ value = '', result = false, approve = true } = {}) {
     vm.runInNewContext(readFileSync(script, 'utf8'), {
         document: { getElementById: id => elements[id] ?? null },
         window: { confirm(message) { confirmations.push(message); return approve; } },
+        navigator: { clipboard },
     });
     return { elements, confirmations };
 }
@@ -79,4 +80,54 @@ test('editing a page without a result is safe', () => {
     elements.data.value = 'new text';
     elements.data.handlers.input();
     assert.equal(elements.data.value, 'new text');
+});
+
+test('copy writes the exact result and reports success only after resolve', async () => {
+    let resolve;
+    let copied;
+    const { elements } = page({ value: 'raw input', result: true,
+        clipboard: { writeText(text) { copied = text; return new Promise(r => { resolve = r; }); } } });
+    const text = '<script>alert(1)</script>\nDOB:XX/XX/25XX';
+    elements.mask_text.value = text;
+    const pending = elements['copy-result-btn'].handlers.click();
+    assert.equal(copied, text);
+    assert.equal(elements['action-status'].textContent, '');
+    resolve();
+    await pending;
+    assert.equal(elements['action-status'].textContent, 'คัดลอกผลลัพธ์แล้ว');
+});
+
+test('missing or rejected clipboard reports manual copy', async () => {
+    for (const clipboard of [undefined, { writeText: async () => { throw Error('denied'); } }]) {
+        const { elements } = page({ result: true, clipboard });
+        await elements['copy-result-btn'].handlers.click();
+        assert.equal(elements['action-status'].textContent,
+            'คัดลอกอัตโนมัติไม่ได้ โปรดเลือกข้อความผลลัพธ์และคัดลอกเอง');
+        assert.equal(elements['result-section'].hidden, false);
+    }
+});
+
+test('editing while copy is pending prevents stale success or failure feedback', async () => {
+    for (const fail of [false, true]) {
+        let finish;
+        const { elements } = page({ result: true, clipboard: {
+            writeText: () => new Promise((resolve, reject) => { finish = fail ? reject : resolve; }),
+        } });
+        const pending = elements['copy-result-btn'].handlers.click();
+        elements.data.value = 'new input';
+        elements.data.handlers.input();
+        elements['action-status'].textContent = 'new status';
+        finish();
+        await pending;
+        assert.equal(elements['action-status'].textContent, 'new status');
+        assert.equal(elements['result-section'].hidden, true);
+    }
+});
+
+test('cleared result cannot be copied', async () => {
+    let calls = 0;
+    const { elements } = page({ result: true, clipboard: { writeText: async () => { calls++; } } });
+    elements['load-example-btn'].handlers.click();
+    await elements['copy-result-btn'].handlers.click();
+    assert.equal(calls, 0);
 });

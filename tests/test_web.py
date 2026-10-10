@@ -51,6 +51,22 @@ class PageParser(HTMLParser):
 
 
 class WebTests(unittest.TestCase):
+    def test_copy_control(self):
+        with app.test_client() as client:
+            for response in (client.get('/'), client.post('/mask', data={'data': ''})):
+                page = PageParser()
+                page.feed(response.get_data(as_text=True))
+                self.assertNotIn('copy-result-btn', page.elements)
+            response = client.post('/mask', data={'data': 'DOB:25/12/2549'})
+        page = PageParser()
+        page.feed(response.get_data(as_text=True))
+        self.assertIn('copy-result-btn', page.elements)
+        button = page.elements['copy-result-btn']
+        self.assertEqual(button['tag'], 'button')
+        self.assertEqual(button['attrs']['type'], 'button')
+        self.assertIn('hidden', button['attrs'])
+        self.assertIn('readonly', page.elements['mask_text']['attrs'])
+
     def test_regex_guide(self):
         patterns = (
             r'\b\d{4}-\d{4}-\d{4}-(\d{4})\b',
