@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>PDPA Data Masking Tool</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='js/i18n.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='js/highlights.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='js/results.js') }}" defer></script>
     <script src="{{ url_for('static', filename='app.js') }}" defer></script>
 </head>
 <body>
@@ -75,9 +78,9 @@
         <p><span data-en="Example:">ตัวอย่าง:</span> <code>1234-5678-9012-3456 → XXXX-XXXX-XXXX-3456</code></p>
 
         <h3 data-en="Email">อีเมล</h3>
-        <p>Pattern: <code>\b([a-zA-Z0-9._%+-])([a-zA-Z0-9._%+-]+)([a-zA-Z0-9._%+-])@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b</code></p>
-        <p>Callback: <code>mask_email</code> <span data-en="Keeps the first and last username characters (groups 1 and 3) and the domain (group 4). Replaces the middle characters with the same number of asterisks (group 2).">เก็บตัวแรกและตัวสุดท้ายของชื่อ (groups 1 และ 3) กับโดเมน (group 4) แล้วแทนตัวกลางด้วย * ตามจำนวนอักขระใน group 2</span></p>
-        <p data-en="One- or two-character usernames have no middle characters to mask and remain unchanged.">ชื่อยาวหนึ่งหรือสองตัวไม่มีตัวกลางให้ปิด จึงคงเดิม</p>
+        <p>Pattern: <code>\b([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b</code></p>
+        <p>Callback: <code>mask_email</code> <span data-en="Keeps the first and last username characters and the domain when the username has at least three characters. Replaces the middle characters with asterisks.">เก็บตัวแรกและตัวสุดท้ายของชื่อกับโดเมนเมื่อชื่อมีอย่างน้อยสามตัว แล้วแทนตัวกลางด้วย *</span></p>
+        <p data-en="One- or two-character usernames are masked completely while the domain remains visible.">ชื่อยาวหนึ่งหรือสองตัวจะถูกปิดทั้งหมด โดยยังคงแสดงโดเมน</p>
         <p><span data-en="Example:">ตัวอย่าง:</span> <code>somchai.d@company.com → s*******d@company.com</code></p>
 
         <h3 data-en="Phone Number">โทรศัพท์</h3>

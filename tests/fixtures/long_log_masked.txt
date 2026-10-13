@@ -14,5 +14,5 @@
 [2026-10-10 09:00:13] INFO Backup card XXXX-XXXX-XXXX-7654 and email d**o@example.org.
 [2026-10-10 09:00:14] INFO Plain date 25/12/2549 remains ordinary text.
 [2026-10-10 09:00:15] WARN Address: ถนนลาดกระบัง has no house number.
-[2026-10-10 09:00:16] DEBUG Short mailbox ab@example.com remains unchanged.
+[2026-10-10 09:00:16] DEBUG Short mailbox **@example.com remains unchanged.
 [2026-10-10 09:00:17] INFO Demo session completed successfully.

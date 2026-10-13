@@ -44,6 +44,8 @@ class MaskDataTests(unittest.TestCase):
             ('1234-5678-9012-3456', 'XXXX-XXXX-XXXX-3456'),
             ('1234567890123456', 'XXXX-XXXX-XXXX-3456'),
             ('somchai.d@company.com', 's*******d@company.com'),
+            ('a@example.com', '*@example.com'),
+            ('ab@example.com', '**@example.com'),
         )
         for text, expected in cases:
             with self.subTest(text=text):

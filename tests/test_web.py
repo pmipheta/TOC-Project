@@ -117,7 +117,7 @@ class WebTests(unittest.TestCase):
             r'\b\d{3}-\d{3}-(\d{4})\b',
             r'\b\d{3}\d{3}(\d{4})\b',
             r'XXX-XXX-\1',
-            r'\b([a-zA-Z0-9._%+-])([a-zA-Z0-9._%+-]+)([a-zA-Z0-9._%+-])@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b',
+            r'\b([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b',
             r'(DOB:[ \t]*)\d{2}/\d{2}/(\d{2})\d{2}(?!\d)',
             r'\g<1>XX/XX/\g<2>XX',
             r'(Address:[ \t]*)\d+(?:/\d+)*(?=\s|$)',
@@ -141,7 +141,7 @@ class WebTests(unittest.TestCase):
                     self.assertIn(pattern, page.code)
                 for text in ('บัตรเครดิต', 'อีเมล', 'โทรศัพท์', 'วันเกิด', 'ที่อยู่',
                              'เก็บตัวแรกและตัวสุดท้าย', 'โดเมน',
-                             'แทนตัวกลางด้วย * ตามจำนวน', 'ไม่ตรวจวันจริง',
+                             'แทนตัวกลางด้วย *', 'ชื่อยาวหนึ่งหรือสองตัวจะถูกปิดทั้งหมด', 'ไม่ตรวจวันจริง',
                              'ไม่แปลงปี', 'ตัวเลขหรือเลขคั่น /',
                              'ไม่ครอบคลุมข้อมูลส่วนบุคคลทุกชนิด'):
                     self.assertIn(text, html)
@@ -164,8 +164,17 @@ class WebTests(unittest.TestCase):
                 status = page.elements['action-status']['attrs']
                 self.assertEqual(status['role'], 'status')
                 self.assertEqual(status['aria-live'], 'polite')
-                self.assertTrue(any(s.get('src') == '/static/app.js' and 'defer' in s
-                                    for s in page.scripts))
+                external_scripts = [script for script in page.scripts if script.get('src')]
+                self.assertEqual(
+                    [script['src'] for script in external_scripts],
+                    [
+                        '/static/js/i18n.js',
+                        '/static/js/highlights.js',
+                        '/static/js/results.js',
+                        '/static/app.js',
+                    ],
+                )
+                self.assertTrue(all('defer' in script for script in external_scripts))
 
     def test_example_masking(self):
         original = '\n'.join((

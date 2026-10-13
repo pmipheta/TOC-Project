@@ -47,9 +47,10 @@ async function page({ value = '', result = false, approve = true, clipboard, mas
     const windowHandlers = {};
     const root = { lang: 'th' };
     let stored = locale;
-    const script = path.join(__dirname, '../static/app.js');
-    assert.ok(existsSync(script), 'static/app.js must exist');
-    vm.runInNewContext(readFileSync(script, 'utf8'), {
+    const scripts = ['js/i18n.js', 'js/highlights.js', 'js/results.js', 'app.js']
+        .map(filename => path.join(__dirname, '../static', filename));
+    for (const script of scripts) assert.ok(existsSync(script), `${script} must exist`);
+    const context = vm.createContext({
         document: {
             documentElement: root,
             querySelectorAll() {
@@ -91,6 +92,7 @@ async function page({ value = '', result = false, approve = true, clipboard, mas
             setItem(key, val) { if (storageBlocked) throw Error('blocked'); stored = val; },
         },
     });
+    for (const script of scripts) vm.runInContext(readFileSync(script, 'utf8'), context);
     await new Promise(resolve => setImmediate(resolve));
     return { elements, confirmations, root, windowHandlers, requests, hiddenDuringExampleFetch,
         setApprove(value) { approved = value; },
@@ -233,6 +235,35 @@ test('grouping keeps repeated values and mixed or HTML lines as safe text', asyn
     assert.equal(groups[2].children[1].textContent, mixed);
     assert.equal(groups[2].children[2].textContent, html);
     assert.equal(groups[2].children[2].children.length, 0);
+});
+
+test('grouping extracts masked values embedded in long log lines by server category', async () => {
+    const masked = [
+        '[09:00] Card XXXX-XXXX-XXXX-3456 accepted.',
+        '[09:01] Sent to a*c@example.com using XXX-XXX-5678.',
+        '[09:02] Profile DOB:XX/XX/25XX updated.',
+        '[09:03] Delivery Address: XXX Road.',
+    ].join('\n');
+    const matches = [
+        ['XXXX-XXXX-XXXX-3456', 'card'],
+        ['a*c@example.com', 'email'],
+        ['XXX-XXX-5678', 'phone'],
+        ['DOB:XX/XX/25XX', 'dob'],
+        ['Address: XXX', 'address'],
+    ];
+    const output_spans = matches.map(([value, kind]) => {
+        const start = Array.from(masked.slice(0, masked.indexOf(value))).length;
+        return {start, end: start + Array.from(value).length, kind};
+    });
+    const { elements } = await page({result: true, masked,
+        metadata: {input_spans: [], output_spans}});
+    elements['result-view-toggle'].handlers.click();
+    const groups = elements['result-categories'].children;
+    assert.deepEqual(groups.map(group => group.children[0].textContent),
+        ['Credit Card', 'Email', 'Phone Number', 'Date of Birth', 'Address']);
+    const renderedText = node => node.textContent || node.children.map(renderedText).join('');
+    assert.deepEqual(groups.map(group => renderedText(group.children[1])),
+        ['XXXX-XXXX-XXXX-3456', 'a*c@example.com', 'XXX-XXX-5678', 'XX/XX/25XX', 'XXX']);
 });
 
 test('copy in categorized mode uses canonical text and failure returns to full text', async () => {

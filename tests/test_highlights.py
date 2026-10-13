@@ -29,8 +29,11 @@ class HighlightTests(unittest.TestCase):
                     self.assertLessEqual(span['end'], len(value))
                     self.assertLess(span['start'], span['end'])
                     end = span['end']
-        for text in ['nothing', 'a@site.com ab@site.com', 'XXXX-XXXX-XXXX-3456 DOB:XX/XX/25XX']:
+        for text in ['nothing', 'XXXX-XXXX-XXXX-3456 DOB:XX/XX/25XX']:
             self.assertEqual(module.mask_with_highlights(text)['input_spans'], [])
+        short = module.mask_with_highlights('a@site.com ab@site.com')
+        self.assertEqual(short['text'], '*@site.com **@site.com')
+        self.assertEqual([span['kind'] for span in short['input_spans']], ['email', 'email'])
 
     def test_endpoint_validation(self):
         client = app.test_client()
