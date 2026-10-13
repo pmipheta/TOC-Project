@@ -263,7 +263,8 @@ test('grouping extracts masked values embedded in long log lines by server categ
         ['Credit Card', 'Email', 'Phone Number', 'Date of Birth', 'Address']);
     const renderedText = node => node.textContent || node.children.map(renderedText).join('');
     assert.deepEqual(groups.map(group => renderedText(group.children[1])),
-        ['XXXX-XXXX-XXXX-3456', 'a*c@example.com', 'XXX-XXX-5678', 'XX/XX/25XX', 'XXX']);
+        ['XXXX-XXXX-XXXX-3456', 'a*c@example.com', 'XXX-XXX-5678', 'XX/XX/25XX', 'XXX Road.']);
+    assert.equal(groups[4].children[1].children.find(node => node.tag === 'mark').textContent, 'XXX Road.');
 });
 
 test('copy in categorized mode uses canonical text and failure returns to full text', async () => {
@@ -400,9 +401,11 @@ test('output marks use server spans and preserve plain copy and categorized offs
     const offset = Array.from('🙂 DOB:XX/XX/25XX\n').length;
     const {elements} = await page({result: true, masked: text,
         metadata: {input_spans: [], output_spans: [{start: 2, end: 16, kind: 'dob'}, {start: offset, end: offset + 12, kind: 'address'}]}});
-    assert.equal(elements['result-text'].children.filter(n => n.tag === 'mark').length, 2);
+    const fullTextMarks = elements['result-text'].children.filter(n => n.tag === 'mark');
+    assert.equal(fullTextMarks.length, 2);
+    assert.equal(fullTextMarks[1].textContent, 'Address: XXX ถนน');
     const groups = elements['result-categories'].children;
-    assert.equal(groups[1].children[1].children.find(n => n.tag === 'mark').textContent, 'XXX');
+    assert.equal(groups[1].children[1].children.find(n => n.tag === 'mark').textContent, 'XXX ถนน');
     assert.equal(elements.mask_text.value, text);
 });
 

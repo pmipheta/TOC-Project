@@ -26,12 +26,32 @@
         for (const span of outputSpans) {
             const label = labels[span.kind];
             if (!label || span.start < 0 || span.end > points.length || span.end <= span.start) continue;
-            let value = points.slice(span.start, span.end).join('');
-            if (span.kind === 'dob') value = value.replace(/^DOB:[ \t]*/, '');
-            else if (span.kind === 'address') value = value.replace(/^Address:[ \t]*/, '');
-            addToGroup(groups, label, value, [
-                {start: 0, end: Array.from(value).length, kind: span.kind},
-            ]);
+            let valueEnd = span.end;
+            if (span.kind === 'address') {
+                while (valueEnd < points.length && points[valueEnd] !== '\n') valueEnd++;
+            }
+
+            const matchedLength = span.end - span.start;
+            let value = points.slice(span.start, valueEnd).join('');
+            let prefixLength = 0;
+            if (span.kind === 'dob') {
+                const prefix = value.match(/^DOB:[ \t]*/)?.[0] || '';
+                prefixLength = Array.from(prefix).length;
+                value = value.slice(prefix.length);
+            } else if (span.kind === 'address') {
+                const prefix = value.match(/^Address:[ \t]*/)?.[0] || '';
+                prefixLength = Array.from(prefix).length;
+                value = value.slice(prefix.length);
+            }
+
+            const valueLength = Array.from(value).length;
+            const highlightEnd = span.kind === 'address'
+                ? valueLength
+                : Math.min(valueLength, matchedLength - prefixLength);
+            const spans = highlightEnd > 0
+                ? [{start: 0, end: highlightEnd, kind: span.kind}]
+                : [];
+            addToGroup(groups, label, value, spans);
         }
         return groups;
     }
@@ -56,6 +76,16 @@
             addToGroup(groups, label, value, []);
         }
         return groups;
+    }
+
+    function extendAddressSpans(text, outputSpans) {
+        const points = Array.from(text);
+        return outputSpans.map(span => {
+            if (span.kind !== 'address') return span;
+            let end = span.end;
+            while (end < points.length && points[end] !== '\n') end++;
+            return {...span, end};
+        });
     }
 
     /** Group masked values by server-provided kind, with a line fallback. */
@@ -85,7 +115,8 @@
     /** Initialize full-text and categorized result views. */
     function initializeResultView({result, resultText, categories, viewToggle, textButton, viewMenu, outputSpans}) {
         if (!result || !resultText) return null;
-        namespace.renderHighlights(resultText, result.value, outputSpans);
+        const displaySpans = extendAddressSpans(result.value, outputSpans);
+        namespace.renderHighlights(resultText, result.value, displaySpans);
         if (!viewToggle) return null;
 
         function setView(showCategories) {
@@ -95,7 +126,7 @@
             textButton.setAttribute('aria-pressed', String(!showCategories));
         }
 
-        renderResultGroups(categories, buildResultGroups(result.value, outputSpans));
+        renderResultGroups(categories, buildResultGroups(result.value, displaySpans));
         viewToggle.addEventListener('click', () => {
             if (result.value) setView(true);
         });
